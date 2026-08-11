@@ -6,6 +6,7 @@ import numpy as np
 project_root = Path(__file__).resolve().parent
 
 from mephc.kspace import SquareKSpace
+from mephc.workflows import save_record_outputs
 from mephc.records import (
     canonical_record_path,
     data_dir,
@@ -147,27 +148,25 @@ def compute_berry_curvature(
         data=result,
         source_case=source_case,
     )
-    canonical_path = canonical_record_path(project_root, config.geometry_id, "bc", task_params)
-    tmp_path = tmp_dir(project_root) / "bc_latest.pkl"
-    if save:
-        save_record(record, canonical_path)
-        update_archive_manifest(project_root, canonical_path, record)
-    if archive:
-        record_name = make_record_name(
-            "bc",
-            num_bands=num_bands,
-            band_index=band_index,
-            grid_n=grid_n,
-            grid_extent=grid_extent,
-            symmetry=symmetry_name,
-            step=step,
-            created_at=record["created_at"],
-        )
-        archive_path = data_dir(project_root, config.geometry_id) / record_name
-        save_record(record, archive_path)
-        update_archive_manifest(project_root, archive_path, record)
-    if save_tmp:
-        save_record(record, tmp_path)
+    canonical_path, tmp_path = save_record_outputs(
+        project_root,
+        config.geometry_id,
+        "bc",
+        task_params,
+        record,
+        archive=archive,
+        archive_params={
+            "num_bands": num_bands,
+            "band_index": band_index,
+            "grid_n": grid_n,
+            "grid_extent": grid_extent,
+            "symmetry": symmetry_name,
+            "step": step,
+        },
+        save=save,
+        save_tmp=save_tmp,
+        tmp_name="bc_latest.pkl",
+    )
     return record, canonical_path, tmp_path
 
 

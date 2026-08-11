@@ -7,7 +7,7 @@ Install the pinned public MePhC release in the `mp` environment:
 
 ```bash
 /home/icy/miniconda3/envs/mp/bin/python -m pip install \\
-  "mephc @ git+https://github.com/WD-nanophotonics/MePhC.git@v0.1.0"
+  "mephc @ git+https://github.com/WD-nanophotonics/MePhC.git@v0.1.1"
 ```
 
 Root files are reusable runners:
