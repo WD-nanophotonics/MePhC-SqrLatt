@@ -1,59 +1,125 @@
+"""Geometry-only configuration for the SqrLatt square-hole case."""
+
+from __future__ import annotations
+
 from pathlib import Path
-
-import numpy as np
-
-from mephc.band import Band
-from mephc.geometry import regular_polygon_vertices
-from mephc.kspace import SquareKSpace, square_gxm_path
-from mephc.records import make_geometry_id
+import sys
 
 case_root = Path(__file__).resolve().parent
+if str(case_root) not in sys.path:
+    sys.path.insert(0, str(case_root))
+try:
+    from .canonical import SquareHoleStructure
+except ImportError:
+    from canonical import SquareHoleStructure
 project_root = case_root.parent
 
+# Physical geometry/material parameters. Task scripts own resolution, bands,
+# k-grid, Berry step, workflow mode, and plotting settings.
 lattice_type = "square"
 hole_shape = "square_hole"
-# Physical lengths are in nm; normalized geometry divides them by a.
 a = 400
-# Square-hole side length. Its normalized circumradius is d/(sqrt(2)*a).
 d = 200
-# Effective slab index used as the background dielectric (epsilon = n_eff**2).
 n_eff = 2.7
-# Meep geometry height. For this 2D workflow it only needs to span the cell.
 height = 1
 polygon_sides = 4
-# A regular four-gon uses 45 degrees to make its edges parallel to x and y.
 polygon_rotation_degrees = 45.0
+stretch_factor = 1.0
+stretch_angle_degrees = 0.0
 
-geometry_id = make_geometry_id(lattice_type, hole_shape, a=a, d=d, n_eff=n_eff)
+# Legacy identity namespace is kept byte-identical. Runtime callers use
+# canonical_structure() so edits to the geometry block are reflected.
+geometry_id = "SQR_LATT_SQR_HOLE_A400_D200_NEFF2p7"
+
+
+def canonical_structure() -> SquareHoleStructure:
+    """Build the single canonical source consumed by all workflows."""
+
+    return SquareHoleStructure(
+        a=a,
+        d=d,
+        n_eff=n_eff,
+        height=height,
+        stretch_factor=stretch_factor,
+        stretch_angle_degrees=stretch_angle_degrees,
+        polygon_sides=polygon_sides,
+        polygon_rotation_degrees=polygon_rotation_degrees,
+    )
+
+
+def get_geometry_id() -> str:
+    """Return the active canonical geometry ID, preserving the legacy variable."""
+
+    return canonical_structure().geometry_id()
+
+
+def geometry_parameters() -> dict[str, object]:
+    """Return geometry-only parameters and canonical basis/BZ metadata."""
+
+    return canonical_structure().geometry_parameters()
+
+
+def validate_geometry() -> None:
+    """Validate the active geometry-only configuration."""
+
+    canonical_structure()
 
 
 def make_band(*, resolution):
-    """Build the MePhC solver object for this geometry case."""
-    return Band(a=a, r1=d / 2, r2=None, n_eff=n_eff, h=height, resolution=resolution, lattice_type=lattice_type)
+    """Build Band from the canonical current direct basis."""
+
+    return canonical_structure().make_band(resolution=resolution)
 
 
 def build_pattern():
-    """Return the normalized square-hole polygon centered in the unit cell."""
-    radius = d / (np.sqrt(2.0) * a)
-    return regular_polygon_vertices((0.0, 0.0), radius, polygon_sides, np.radians(polygon_rotation_degrees))
+    """Return the rigid motif consumed by preview and solver conversion."""
+
+    return canonical_structure().build_pattern()
 
 
 def band_path():
-    """Return the square-lattice Gamma-X-M-Gamma high-symmetry path."""
-    return square_gxm_path()
+    """Return legacy G-X-M-G or an honestly named current-BZ path."""
+
+    return canonical_structure().band_path()
+
+
+def band_path_policy() -> str:
+    """Return the task identity for the selected path policy."""
+
+    return canonical_structure().band_path_policy()
 
 
 def square_grid(n, extent=0.5):
-    """Return an ``n x n`` grid over ``[-extent, extent]^2``."""
-    return SquareKSpace(n).full_grid(extent=extent)
+    """Return identity square samples or current-BZ samples after deformation."""
 
+    return canonical_structure().sample_grid(n, extent=extent)
+
+
+def c4_quadrant(n, extent=1.0):
+    """Return the identity first-quadrant grid used for verified C4 reduction."""
+
+    return canonical_structure().c4_quadrant(n, extent=extent)
+
+
+def resolve_symmetry(symmetry, raw_full_grid=False):
+    """Resolve a Berry mode through the complete-structure C4 verifier."""
+
+    return canonical_structure().resolve_symmetry(symmetry, raw_full_grid=raw_full_grid)
+
+
+def verify_c4():
+    """Return detailed C4 verification evidence for this complete structure."""
+
+    return canonical_structure().verify_c4()
 
 
 def unit_cell_outline():
-    """Return the normalized square-cell boundary used by pattern preview."""
-    return [(-0.5, -0.5), (0.5, -0.5), (0.5, 0.5), (-0.5, 0.5)]
+    """Return the current-cell outline from the canonical direct basis."""
+
+    return canonical_structure().unit_cell_outline()
 
 
 def preview_pattern_data():
-    """Return geometry in the same normalized coordinates used for simulation."""
-    return build_pattern()
+    """Return the exact normalized motif used by MPB geometry conversion."""
+
+    return canonical_structure().build_pattern()

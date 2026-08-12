@@ -32,8 +32,9 @@ step = 0.0005
 band_index = None
 # Python 0-based band selected only for plotting; changing it does not recompute.
 plot_band_index = 2
-# "c4q" computes the first quadrant and copies values by proper C4 rotations.
-symmetry = "c4q"
+# "auto" verifies the complete canonical structure: identity resolves to c4q;
+# a non-identity affine case resolves conservatively to raw_bz.
+symmetry = "auto"
 # True bypasses C4 reduction and independently computes the full square grid.
 raw_full_grid = False
 
