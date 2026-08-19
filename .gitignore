@@ -16,6 +16,4 @@ diagnostics/
 *.pickle
 .mephc_staging/
 
-!data/README.md
-!image/README.md
-!archive_manifest.json
+archive_manifest.json
